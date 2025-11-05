@@ -29,15 +29,24 @@ CSRF_TRUSTED_ORIGINS = [
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "change-me")
 
-# Database: Supabase Postgres
-DATABASES = {
-    "default": dj_database_url.config(
-        env="DATABASE_URL",
-        conn_max_age=600,
-        ssl_require=True
-    )
-}
-
+# Database: Supabase Postgres kalo pake server, sqlite kalo run lokal
+if os.environ.get("DATABASE_URL"):
+    DATABASES = {
+        "default": dj_database_url.config(
+            env="DATABASE_URL",
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+    
+    
 # Static
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
