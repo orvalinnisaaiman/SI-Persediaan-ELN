@@ -11,23 +11,60 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-import os
+import os, dj_database_url
 from django.contrib.messages import constants as messages
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
+
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
+CSRF_TRUSTED_ORIGINS = [
+    # domain vercel kamu, mis: "https://si-persediaan-eln.vercel.app"
+    *[d for d in os.environ.get("CSRF_TRUSTED", "").split(",") if d],
+]
+
+SECRET_KEY = os.environ.get("SECRET_KEY", "change-me")
+
+# Database: Supabase Postgres
+DATABASES = {
+    "default": dj_database_url.config(
+        env="DATABASE_URL",
+        conn_max_age=600,
+        ssl_require=True
+    )
+}
+
+# Static
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # penting utk static
+    # ...middleware lainmu
+]
+
+# Whitenoise opsi (opsional)
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# Proxy SSL header (biar request.is_secure() True di Vercel)
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-j&(7*eryy%i7i*0@wq4w0fp*5($-17q^x=_i8pfixp4l7bh^wt'
+# SECRET_KEY = 'django-insecure-j&(7*eryy%i7i*0@wq4w0fp*5($-17q^x=_i8pfixp4l7bh^wt'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
 
-ALLOWED_HOSTS = ['.vercell.app', 'localhost', '127.0.0.1']
+# ALLOWED_HOSTS = ['.vercell.app', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -50,7 +87,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 ROOT_URLCONF = 'eln.urls'
 
@@ -82,12 +122,12 @@ WSGI_APPLICATION = 'eln.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 
 # Password validation
@@ -127,7 +167,7 @@ NUMBER_GROUPING = 3
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
@@ -145,8 +185,4 @@ MESSAGE_TAGS = {
     messages.ERROR: 'danger',   # <— penting
 }
 
-import os
-if os.environ.get('VERCEL'):
-    from eln.wsgi import application
-    
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
