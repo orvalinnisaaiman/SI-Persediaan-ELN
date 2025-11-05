@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-j&(7*eryy%i7i*0@wq4w0fp*5($-17q^x=_i8pfixp4l7bh^wt
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['.vercell.app', 'localhost']
 
 
 # Application definition
@@ -144,3 +144,7 @@ MESSAGE_TAGS = {
     messages.WARNING: 'warning',
     messages.ERROR: 'danger',   # <— penting
 }
+
+import os
+if os.environ.get('VERCEL'):
+    from eln.wsgi import application
