@@ -148,3 +148,5 @@ MESSAGE_TAGS = {
 import os
 if os.environ.get('VERCEL'):
     from eln.wsgi import application
+    
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
