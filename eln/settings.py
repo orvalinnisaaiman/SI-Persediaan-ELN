@@ -12,56 +12,60 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os, dj_database_url
+from dotenv import load_dotenv
 from django.contrib.messages import constants as messages
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
+SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-default")
 
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
-DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
-
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
-CSRF_TRUSTED_ORIGINS = [
-    # domain vercel kamu, mis: "https://si-persediaan-eln.vercel.app"
-    *[d for d in os.environ.get("CSRF_TRUSTED", "").split(",") if d],
+ALLOWED_HOSTS = [
+    ".vercel.app",
+    "localhost",
+    "127.0.0.1",
+    "0.0.0.0",
+    ".supabase.co",
 ]
 
-SECRET_KEY = os.environ.get("SECRET_KEY", "change-me")
+# CSRF_TRUSTED_ORIGINS = [
+#     # domain vercel kamu, mis: "https://si-persediaan-eln.vercel.app"
+#     *[d for d in os.environ.get("CSRF_TRUSTED", "").split(",") if d],
+# ]
+
+
 
 # Database: Supabase Postgres kalo pake server, sqlite kalo run lokal
-if os.environ.get("DATABASE_URL"):
-    DATABASES = {
-        "default": dj_database_url.config(
-            env="DATABASE_URL",
-            conn_max_age=600,
-            ssl_require=True
-        )
-    }
-else:
-    DATABASES = {
+# if os.environ.get("DATABASE_URL"):
+DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
+            'ENGINE':'django.db.backends.postgresql',
+            'NAME':os.getenv("DB_NAME","postgres"),
+            'USER':os.getenv("DB_USER","postgres"),
+            'PASSWORD':os.getenv("DB_PASSWORD", ""),
+            'HOST':os.getenv("DB_HOST", "localhost").strip().replace("-","-"),
+            'OPTIONS':{
+                'sslmode':'require',
+            },
         }
     }
+
+
+# else:
+#     DATABASES = {
+#         "default": {
+#             "ENGINE": "django.db.backends.sqlite3",
+#             "NAME": BASE_DIR / "db.sqlite3",
+#         }
+#     }
     
     
-# Static
-STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
-
-MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # penting utk static
-    # ...middleware lainmu
-]
-
-# Whitenoise opsi (opsional)
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Proxy SSL header (biar request.is_secure() True di Vercel)
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 
 # Quick-start development settings - unsuitable for production
@@ -86,10 +90,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'inventory',
+    'whitenoise.runserver_nostatic',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -97,7 +103,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
@@ -175,6 +180,15 @@ NUMBER_GROUPING = 3
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
+# Static
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR / "staticfiles")
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+# Whitenoise opsi (opsional)
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
 STATICFILES_DIRS = [
@@ -195,3 +209,7 @@ MESSAGE_TAGS = {
 }
 
 
+# # Disable collectstatic auto fail
+# if os.environ.get("CI") == "true":
+#     STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+#     STATIC_ROOT = BASE_DIR / "staticfiles"

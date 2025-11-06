@@ -1,7 +1,21 @@
 {
   "version": 2,
+  "builds":[
+    {
+      "src": "eln/wsgi.py",
+      "use":"@vercel/python",
+      "config":{
+        "maxLambdaSize":"15mb",
+        "runtime":"python3.12"
+      }
+    }
+  ],
+
+  "buildCommand":"python manage.py collectstatic - noinput && vercel build",
+
+
   "routes": [
-    { "src": "/static/(.*)", "dest": "/static/$1" },
-    { "src": "/(.*)", "dest": "/api/index.py" }
+    { "src": "/(.*)", 
+    "dest": "eln/wsgi.py" }
   ]
 }
