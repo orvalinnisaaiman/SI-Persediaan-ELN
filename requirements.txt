@@ -10,6 +10,7 @@ psycopg2-binary>=2.9
 asgiref>=3.8
 
 supabase>=2.15.0
+weasyprint>=60.1
 
 
 
